@@ -4,41 +4,31 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { FiPlus, FiEdit2, FiTrash2, FiX, FiCode } from 'react-icons/fi';
 import AdminSidebar from '@/components/AdminSidebar';
+import { skillsAPI } from '@/lib/api';
 
 interface Skill {
-  id: string;
+  _id: string;
   name: string;
-  category: 'Frontend' | 'Backend' | 'Database' | 'Tools';
-  proficiency: 'Expert' | 'Advanced' | 'Intermediate';
+  category: 'Frontend' | 'Backend' | 'Database' | 'Tools' | 'Other';
+  proficiency: number;
 }
-
-const initialSkills: Skill[] = [
-  { id: '1', name: 'React', category: 'Frontend', proficiency: 'Expert' },
-  { id: '2', name: 'Next.js', category: 'Frontend', proficiency: 'Advanced' },
-  { id: '3', name: 'Node.js', category: 'Backend', proficiency: 'Advanced' },
-  { id: '4', name: 'Express', category: 'Backend', proficiency: 'Advanced' },
-  { id: '5', name: 'MongoDB', category: 'Database', proficiency: 'Intermediate' },
-  { id: '6', name: 'TypeScript', category: 'Frontend', proficiency: 'Advanced' },
-  { id: '7', name: 'JavaScript', category: 'Frontend', proficiency: 'Expert' },
-  { id: '8', name: 'Tailwind CSS', category: 'Frontend', proficiency: 'Expert' },
-  { id: '9', name: 'Git', category: 'Tools', proficiency: 'Advanced' }
-];
 
 export default function AdminSkills() {
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
-  const [skills, setSkills] = useState<Skill[]>(initialSkills);
+  const [skills, setSkills] = useState<Skill[]>([]);
+  const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   
   const [formData, setFormData] = useState<{
     name: string;
-    category: 'Frontend' | 'Backend' | 'Database' | 'Tools';
-    proficiency: 'Expert' | 'Advanced' | 'Intermediate';
+    category: 'Frontend' | 'Backend' | 'Database' | 'Tools' | 'Other';
+    proficiency: string;
   }>({
     name: '',
     category: 'Frontend',
-    proficiency: 'Intermediate'
+    proficiency: '50'
   });
 
   useEffect(() => {
@@ -47,20 +37,32 @@ export default function AdminSkills() {
       router.push('/admin/login');
     } else {
       setMounted(true);
+      fetchSkills();
     }
   }, [router]);
 
+  const fetchSkills = async () => {
+    try {
+      const response = await skillsAPI.getAll();
+      setSkills(response.data);
+    } catch (err) {
+      console.error('Failed to fetch skills:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleOpenModal = (skill?: Skill) => {
     if (skill) {
-      setEditingId(skill.id);
+      setEditingId(skill._id);
       setFormData({
         name: skill.name,
         category: skill.category,
-        proficiency: skill.proficiency
+        proficiency: skill.proficiency.toString()
       });
     } else {
       setEditingId(null);
-      setFormData({ name: '', category: 'Frontend', proficiency: 'Intermediate' });
+      setFormData({ name: '', category: 'Frontend', proficiency: '50' });
     }
     setIsModalOpen(true);
   };
@@ -70,19 +72,36 @@ export default function AdminSkills() {
     setEditingId(null);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (editingId) {
-      setSkills(skills.map(s => s.id === editingId ? { ...formData, id: editingId } : s));
-    } else {
-      setSkills([...skills, { ...formData, id: Date.now().toString() }]);
+    const payload = {
+      name: formData.name,
+      category: formData.category,
+      proficiency: parseInt(formData.proficiency, 10)
+    };
+
+    try {
+      if (editingId) {
+        await skillsAPI.update(editingId, payload);
+      } else {
+        await skillsAPI.create(payload);
+      }
+      handleCloseModal();
+      fetchSkills();
+    } catch (err: any) {
+      console.error('Failed to save skill:', err);
+      alert(err.response?.data?.message || 'Failed to save skill');
     }
-    handleCloseModal();
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     if (window.confirm('Are you sure you want to delete this skill?')) {
-      setSkills(skills.filter(s => s.id !== id));
+      try {
+        await skillsAPI.delete(id);
+        fetchSkills();
+      } catch (err) {
+        console.error('Failed to delete skill:', err);
+      }
     }
   };
 
@@ -106,8 +125,10 @@ export default function AdminSkills() {
 
         {/* Skills Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {skills.map((skill) => (
-            <div key={skill.id} className="bg-[#0a0514] border border-white/10 rounded-2xl p-6 hover:border-purple-500/30 hover:shadow-[0_0_20px_rgba(168,85,247,0.1)] transition-all flex flex-col h-full group">
+          {loading ? (
+             <div className="col-span-full py-12 text-center text-gray-500 text-lg">Loading skills...</div>
+          ) : skills.map((skill) => (
+            <div key={skill._id} className="bg-[#0a0514] border border-white/10 rounded-2xl p-6 hover:border-purple-500/30 hover:shadow-[0_0_20px_rgba(168,85,247,0.1)] transition-all flex flex-col h-full group">
               <div className="flex justify-between items-start mb-4">
                 <div className="p-3 bg-white/5 rounded-xl text-purple-400 group-hover:scale-110 transition-transform">
                   <FiCode className="w-6 h-6" />
@@ -120,7 +141,7 @@ export default function AdminSkills() {
                     <FiEdit2 className="w-4 h-4" />
                   </button>
                   <button 
-                    onClick={() => handleDelete(skill.id)}
+                    onClick={() => handleDelete(skill._id)}
                     className="p-2 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors"
                   >
                     <FiTrash2 className="w-4 h-4" />
@@ -133,15 +154,18 @@ export default function AdminSkills() {
                   {skill.category}
                 </span>
                 <span className={`text-xs px-2.5 py-1 rounded-md border ${
-                  skill.proficiency === 'Expert' ? 'bg-purple-500/10 text-purple-300 border-purple-500/20' :
-                  skill.proficiency === 'Advanced' ? 'bg-blue-500/10 text-blue-300 border-blue-500/20' :
+                  skill.proficiency >= 80 ? 'bg-purple-500/10 text-purple-300 border-purple-500/20' :
+                  skill.proficiency >= 50 ? 'bg-blue-500/10 text-blue-300 border-blue-500/20' :
                   'bg-emerald-500/10 text-emerald-300 border-emerald-500/20'
                 }`}>
-                  {skill.proficiency}
+                  {skill.proficiency >= 80 ? 'Expert' : skill.proficiency >= 50 ? 'Advanced' : 'Intermediate'}
                 </span>
               </div>
             </div>
           ))}
+          {!loading && skills.length === 0 && (
+            <div className="col-span-full py-12 text-center text-gray-500 text-lg">No skills found. Add one!</div>
+          )}
         </div>
       </main>
 
@@ -171,15 +195,12 @@ export default function AdminSkills() {
                     <option value="Backend">Backend</option>
                     <option value="Database">Database</option>
                     <option value="Tools">Tools</option>
+                    <option value="Other">Other</option>
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">Proficiency Level</label>
-                  <select required value={formData.proficiency} onChange={e => setFormData({...formData, proficiency: e.target.value as any})} className="w-full bg-[#030014] border border-white/10 rounded-xl px-4 py-3.5 text-white focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/50">
-                    <option value="Expert">Expert</option>
-                    <option value="Advanced">Advanced</option>
-                    <option value="Intermediate">Intermediate</option>
-                  </select>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Proficiency Level (1-100)</label>
+                  <input required type="number" min="1" max="100" value={formData.proficiency} onChange={e => setFormData({...formData, proficiency: e.target.value})} className="w-full bg-[#030014] border border-white/10 rounded-xl px-4 py-3.5 text-white focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/50" />
                 </div>
               </form>
             </div>

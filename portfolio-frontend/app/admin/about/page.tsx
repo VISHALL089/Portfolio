@@ -4,21 +4,23 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { FiSave, FiCheckCircle } from 'react-icons/fi';
 import AdminSidebar from '@/components/AdminSidebar';
+import { aboutAPI } from '@/lib/api';
 
 export default function AdminAbout() {
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [loading, setLoading] = useState(true);
   
   const [formData, setFormData] = useState({
-    fullName: 'Vishal',
-    role: 'Full Stack Developer',
-    bio: "I'm Vishal, a passionate Full Stack Developer who loves building modern web applications. I specialize in React, Next.js, Node.js and MongoDB. I enjoy turning complex problems into simple, beautiful solutions.",
-    email: 'crazyrock0106@gmail.com',
-    githubUrl: 'https://github.com/VISHALL089',
-    linkedinUrl: 'https://www.linkedin.com/in/vishal-masimade/',
-    profileImageUrl: ''
+    name: '',
+    bio: '',
+    email: '',
+    github: '',
+    linkedin: '',
+    twitter: '',
+    resumeLink: ''
   });
 
   useEffect(() => {
@@ -27,19 +29,57 @@ export default function AdminAbout() {
       router.push('/admin/login');
     } else {
       setMounted(true);
+      fetchAbout();
     }
   }, [router]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const fetchAbout = async () => {
+    try {
+      const response = await aboutAPI.get();
+      if (response.data && response.data.name) {
+        setFormData({
+          name: response.data.name || '',
+          bio: response.data.bio || '',
+          email: response.data.email || '',
+          github: response.data.socialLinks?.github || '',
+          linkedin: response.data.socialLinks?.linkedin || '',
+          twitter: response.data.socialLinks?.twitter || '',
+          resumeLink: response.data.resumeLink || ''
+        });
+      }
+    } catch (err) {
+      console.error('Failed to fetch about info:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSaving(true);
     
-    // Simulate API call
-    setTimeout(() => {
-      setIsSaving(false);
+    const payload = {
+      name: formData.name,
+      bio: formData.bio,
+      email: formData.email,
+      socialLinks: {
+        github: formData.github,
+        linkedin: formData.linkedin,
+        twitter: formData.twitter
+      },
+      resumeLink: formData.resumeLink
+    };
+
+    try {
+      await aboutAPI.update(payload);
       setShowSuccess(true);
       setTimeout(() => setShowSuccess(false), 3000);
-    }, 800);
+    } catch (err: any) {
+      console.error('Failed to save about info:', err);
+      alert(err.response?.data?.message || 'Failed to save about info');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   if (!mounted) return null;
@@ -62,55 +102,58 @@ export default function AdminAbout() {
           )}
 
           <div className="bg-[#0a0514] border border-white/10 rounded-2xl p-8 shadow-xl">
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {loading ? (
+              <div className="text-center text-gray-500 py-12">Loading about info...</div>
+            ) : (
+              <form onSubmit={handleSubmit} className="space-y-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">Full Name</label>
-                  <input required type="text" value={formData.fullName} onChange={e => setFormData({...formData, fullName: e.target.value})} className="w-full bg-[#030014] border border-white/10 rounded-xl px-4 py-3.5 text-white focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/50" />
+                  <input required type="text" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full bg-[#030014] border border-white/10 rounded-xl px-4 py-3.5 text-white focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/50" />
                 </div>
+
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">Title / Role</label>
-                  <input required type="text" value={formData.role} onChange={e => setFormData({...formData, role: e.target.value})} className="w-full bg-[#030014] border border-white/10 rounded-xl px-4 py-3.5 text-white focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/50" />
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Bio</label>
+                  <textarea required rows={5} value={formData.bio} onChange={e => setFormData({...formData, bio: e.target.value})} className="w-full bg-[#030014] border border-white/10 rounded-xl px-4 py-3.5 text-white focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/50 resize-none"></textarea>
                 </div>
-              </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Bio</label>
-                <textarea required rows={5} value={formData.bio} onChange={e => setFormData({...formData, bio: e.target.value})} className="w-full bg-[#030014] border border-white/10 rounded-xl px-4 py-3.5 text-white focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/50 resize-none"></textarea>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Email Address</label>
-                <input required type="email" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} className="w-full bg-[#030014] border border-white/10 rounded-xl px-4 py-3.5 text-white focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/50" />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">GitHub URL</label>
-                  <input type="url" value={formData.githubUrl} onChange={e => setFormData({...formData, githubUrl: e.target.value})} className="w-full bg-[#030014] border border-white/10 rounded-xl px-4 py-3.5 text-white focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/50" />
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Email Address</label>
+                  <input type="email" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} className="w-full bg-[#030014] border border-white/10 rounded-xl px-4 py-3.5 text-white focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/50" />
                 </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">GitHub URL</label>
+                    <input type="url" value={formData.github} onChange={e => setFormData({...formData, github: e.target.value})} className="w-full bg-[#030014] border border-white/10 rounded-xl px-4 py-3.5 text-white focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/50" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">LinkedIn URL</label>
+                    <input type="url" value={formData.linkedin} onChange={e => setFormData({...formData, linkedin: e.target.value})} className="w-full bg-[#030014] border border-white/10 rounded-xl px-4 py-3.5 text-white focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/50" />
+                  </div>
+                </div>
+
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">LinkedIn URL</label>
-                  <input type="url" value={formData.linkedinUrl} onChange={e => setFormData({...formData, linkedinUrl: e.target.value})} className="w-full bg-[#030014] border border-white/10 rounded-xl px-4 py-3.5 text-white focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/50" />
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Twitter URL (Optional)</label>
+                  <input type="url" value={formData.twitter} onChange={e => setFormData({...formData, twitter: e.target.value})} className="w-full bg-[#030014] border border-white/10 rounded-xl px-4 py-3.5 text-white focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/50" placeholder="https://" />
                 </div>
-              </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Profile Image URL (Optional)</label>
-                <input type="url" value={formData.profileImageUrl} onChange={e => setFormData({...formData, profileImageUrl: e.target.value})} className="w-full bg-[#030014] border border-white/10 rounded-xl px-4 py-3.5 text-white focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/50" placeholder="https://" />
-              </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Resume Link (Optional)</label>
+                  <input type="url" value={formData.resumeLink} onChange={e => setFormData({...formData, resumeLink: e.target.value})} className="w-full bg-[#030014] border border-white/10 rounded-xl px-4 py-3.5 text-white focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/50" placeholder="https://" />
+                </div>
 
-              <div className="pt-4 flex justify-end">
-                <button 
-                  type="submit" 
-                  disabled={isSaving}
-                  className="flex items-center space-x-2 px-8 py-4 rounded-xl font-semibold text-white bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 transition-colors shadow-lg shadow-purple-600/20 disabled:opacity-70 transform hover:scale-[1.02]"
-                >
-                  <FiSave className="w-5 h-5" />
-                  <span>{isSaving ? 'Saving...' : 'Save Changes'}</span>
-                </button>
-              </div>
-            </form>
+                <div className="pt-4 flex justify-end">
+                  <button 
+                    type="submit" 
+                    disabled={isSaving}
+                    className="flex items-center space-x-2 px-8 py-4 rounded-xl font-semibold text-white bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 transition-colors shadow-lg shadow-purple-600/20 disabled:opacity-70 transform hover:scale-[1.02]"
+                  >
+                    <FiSave className="w-5 h-5" />
+                    <span>{isSaving ? 'Saving...' : 'Save Changes'}</span>
+                  </button>
+                </div>
+              </form>
+            )}
           </div>
         </div>
       </main>

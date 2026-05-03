@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { authAPI } from '@/lib/api';
 
 export default function AdminLogin() {
   const [email, setEmail] = useState('');
@@ -16,16 +17,16 @@ export default function AdminLogin() {
     setLoading(true);
 
     try {
-      // Temporary hardcoded login - replace with real API later
-      if (email === 'admin@vishal.com' && password === 'admin123') {
-        localStorage.setItem('token', 'temp-admin-token');
-        document.cookie = `token=temp-admin-token; path=/; max-age=86400; SameSite=Lax`;
+      const response = await authAPI.login(email, password);
+      const { token } = response.data;
+
+      if (token) {
+        localStorage.setItem('token', token);
+        document.cookie = `token=${token}; path=/; max-age=86400; SameSite=Lax`;
         router.push('/admin/dashboard');
-      } else {
-        setError('Invalid credentials');
       }
-    } catch (err) {
-      setError('Something went wrong. Please try again.');
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Invalid credentials');
     } finally {
       setLoading(false);
     }

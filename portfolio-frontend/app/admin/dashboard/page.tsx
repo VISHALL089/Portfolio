@@ -3,12 +3,17 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { FiHome, FiFolder, FiCode, FiUser, FiLogOut, FiPlus, FiEdit, FiTrash2, FiLayers, FiSettings, FiGrid, FiActivity, FiClock, FiZap, FiCheckCircle } from 'react-icons/fi'
+import { FiLayers, FiCode, FiUser, FiClock, FiCheckCircle } from 'react-icons/fi';
 import AdminSidebar from '@/components/AdminSidebar';
+import { projectsAPI, skillsAPI } from '@/lib/api';
 
 export default function AdminDashboard() {
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
+  const [stats, setStats] = useState({
+    totalProjects: 0,
+    totalSkills: 0,
+  });
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -16,8 +21,24 @@ export default function AdminDashboard() {
       router.push('/admin/login');
     } else {
       setMounted(true);
+      fetchStats();
     }
   }, [router]);
+
+  const fetchStats = async () => {
+    try {
+      const [projectsRes, skillsRes] = await Promise.all([
+        projectsAPI.getAll(),
+        skillsAPI.getAll(),
+      ]);
+      setStats({
+        totalProjects: projectsRes.data.length,
+        totalSkills: skillsRes.data.length,
+      });
+    } catch (err) {
+      console.error('Failed to fetch stats:', err);
+    }
+  };
 
   if (!mounted) return null;
 
@@ -28,7 +49,7 @@ export default function AdminDashboard() {
       <main className="flex-1 ml-64 min-h-screen flex flex-col p-8">
         <header className="mb-10 mt-4">
           <h1 className="text-4xl font-bold text-white mb-2">Welcome back, Vishal 👋</h1>
-          <p className="text-gray-400 text-lg">Here's what's happening with your portfolio today.</p>
+          <p className="text-gray-400 text-lg">Here&apos;s what&apos;s happening with your portfolio today.</p>
         </header>
 
         {/* Stats Grid */}
@@ -40,7 +61,7 @@ export default function AdminDashboard() {
               </div>
               <div>
                 <p className="text-gray-400 text-sm font-medium">Total Projects</p>
-                <h3 className="text-3xl font-bold mt-1 text-white">3</h3>
+                <h3 className="text-3xl font-bold mt-1 text-white">{stats.totalProjects}</h3>
               </div>
             </div>
           </div>
@@ -52,7 +73,7 @@ export default function AdminDashboard() {
               </div>
               <div>
                 <p className="text-gray-400 text-sm font-medium">Total Skills</p>
-                <h3 className="text-3xl font-bold mt-1 text-white">9</h3>
+                <h3 className="text-3xl font-bold mt-1 text-white">{stats.totalSkills}</h3>
               </div>
             </div>
           </div>
