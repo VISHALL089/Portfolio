@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://portfolio-backend-z1kp.onrender.com';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://portfolio-backend-z1kp.onrender.com/api';
 
 // Create axios instance with base URL
 const api = axios.create({
@@ -37,9 +37,9 @@ api.interceptors.response.use(
 // ==================== AUTH ====================
 export const authAPI = {
   login: (email: string, password: string) =>
-    api.post('/login', { email, password }),
+    api.post('/auth/login', { email, password }),
   register: (email: string, password: string) =>
-    api.post('/register', { email, password }),
+    api.post('/auth/register', { email, password }),
 };
 
 // ==================== PROJECTS ====================
