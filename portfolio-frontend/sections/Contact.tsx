@@ -1,26 +1,9 @@
 "use client";
 
-import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { FiMail, FiGithub, FiLinkedin, FiSend } from 'react-icons/fi';
-import { aboutAPI } from '@/lib/api';
 
 export default function Contact() {
-  const [aboutData, setAboutData] = useState<any>(null);
-
-  useEffect(() => {
-    const fetchAbout = async () => {
-      try {
-        const response = await aboutAPI.get();
-        setAboutData(response.data);
-      } catch (err) {
-        console.error('Failed to fetch contact info:', err);
-      }
-    };
-
-    fetchAbout();
-  }, []);
-
   return (
     <section id="contact" className="py-24 bg-transparent relative text-white border-t border-white/5">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -96,32 +79,26 @@ export default function Contact() {
             transition={{ duration: 0.8, delay: 0.4 }}
             className="flex flex-col sm:flex-row items-center justify-center space-y-6 sm:space-y-0 sm:space-x-10 pt-8 border-t border-white/10"
           >
-            {aboutData?.email && (
-              <a href={`mailto:${aboutData.email}`} target="_blank" rel="noopener noreferrer" className="flex items-center space-x-3 text-gray-300 hover:text-purple-400 transition-colors group">
-                <div className="p-3 bg-white/5 rounded-full group-hover:bg-purple-500/20 transition-colors border border-white/10 group-hover:border-purple-500/30">
-                  <FiMail className="w-6 h-6" />
-                </div>
-                <span className="font-medium">{aboutData.email}</span>
-              </a>
-            )}
+            <a href="mailto:crazyrock0106@gmail.com" target="_blank" rel="noopener noreferrer" className="flex items-center space-x-3 text-gray-300 hover:text-purple-400 transition-colors group">
+              <div className="p-3 bg-white/5 rounded-full group-hover:bg-purple-500/20 transition-colors border border-white/10 group-hover:border-purple-500/30">
+                <FiMail className="w-6 h-6" />
+              </div>
+              <span className="font-medium">crazyrock0106@gmail.com</span>
+            </a>
             
-            {aboutData?.socialLinks?.github && (
-              <a href={aboutData.socialLinks.github} target="_blank" rel="noopener noreferrer" className="flex items-center space-x-3 text-gray-300 hover:text-white transition-colors group">
-                <div className="p-3 bg-white/5 rounded-full group-hover:bg-white/10 transition-colors border border-white/10 group-hover:border-white/30">
-                  <FiGithub className="w-6 h-6" />
-                </div>
-                <span className="font-medium">GitHub</span>
-              </a>
-            )}
+            <a href="https://github.com/VISHALL089" target="_blank" rel="noopener noreferrer" className="flex items-center space-x-3 text-gray-300 hover:text-white transition-colors group">
+              <div className="p-3 bg-white/5 rounded-full group-hover:bg-white/10 transition-colors border border-white/10 group-hover:border-white/30">
+                <FiGithub className="w-6 h-6" />
+              </div>
+              <span className="font-medium">GitHub</span>
+            </a>
 
-            {aboutData?.socialLinks?.linkedin && (
-              <a href={aboutData.socialLinks.linkedin} target="_blank" rel="noopener noreferrer" className="flex items-center space-x-3 text-gray-300 hover:text-[#0A66C2] transition-colors group">
-                <div className="p-3 bg-white/5 rounded-full group-hover:bg-[#0A66C2]/20 transition-colors border border-white/10 group-hover:border-[#0A66C2]/30">
-                  <FiLinkedin className="w-6 h-6" />
-                </div>
-                <span className="font-medium">LinkedIn</span>
-              </a>
-            )}
+            <a href="https://www.linkedin.com/in/vishal-masimade/" target="_blank" rel="noopener noreferrer" className="flex items-center space-x-3 text-gray-300 hover:text-[#0A66C2] transition-colors group">
+              <div className="p-3 bg-white/5 rounded-full group-hover:bg-[#0A66C2]/20 transition-colors border border-white/10 group-hover:border-[#0A66C2]/30">
+                <FiLinkedin className="w-6 h-6" />
+              </div>
+              <span className="font-medium">LinkedIn</span>
+            </a>
           </motion.div>
         </div>
       </div>

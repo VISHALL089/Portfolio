@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { 
   SiReact, 
@@ -13,48 +12,20 @@ import {
   SiTailwindcss, 
   SiGit 
 } from 'react-icons/si';
-import { FiCode } from 'react-icons/fi';
-import { skillsAPI } from '@/lib/api';
 
-// Icon lookup table
-const iconMap: Record<string, any> = {
-  'React': { icon: SiReact, color: 'text-[#61DAFB]' },
-  'Next.js': { icon: SiNextdotjs, color: 'text-white' },
-  'Node.js': { icon: SiNodedotjs, color: 'text-[#339933]' },
-  'Express': { icon: SiExpress, color: 'text-white' },
-  'MongoDB': { icon: SiMongodb, color: 'text-[#47A248]' },
-  'TypeScript': { icon: SiTypescript, color: 'text-[#3178C6]' },
-  'JavaScript': { icon: SiJavascript, color: 'text-[#F7DF1E]' },
-  'Tailwind CSS': { icon: SiTailwindcss, color: 'text-[#06B6D4]' },
-  'Git': { icon: SiGit, color: 'text-[#F05032]' },
-};
-
-interface Skill {
-  _id: string;
-  name: string;
-  category?: string;
-  proficiency?: number;
-}
+const skills = [
+  { name: 'React', icon: SiReact, color: 'text-[#61DAFB]' },
+  { name: 'Next.js', icon: SiNextdotjs, color: 'text-white' },
+  { name: 'Node.js', icon: SiNodedotjs, color: 'text-[#339933]' },
+  { name: 'Express', icon: SiExpress, color: 'text-white' },
+  { name: 'MongoDB', icon: SiMongodb, color: 'text-[#47A248]' },
+  { name: 'TypeScript', icon: SiTypescript, color: 'text-[#3178C6]' },
+  { name: 'JavaScript', icon: SiJavascript, color: 'text-[#F7DF1E]' },
+  { name: 'Tailwind CSS', icon: SiTailwindcss, color: 'text-[#06B6D4]' },
+  { name: 'Git', icon: SiGit, color: 'text-[#F05032]' },
+];
 
 export default function Skills() {
-  const [skills, setSkills] = useState<Skill[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchSkills = async () => {
-      try {
-        const response = await skillsAPI.getAll();
-        setSkills(response.data);
-      } catch (err) {
-        console.error('Failed to fetch skills:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchSkills();
-  }, []);
-
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -73,14 +44,6 @@ export default function Skills() {
       transition: { duration: 0.5 }
     }
   };
-
-  if (loading) {
-    return (
-      <section id="skills" className="py-24 bg-transparent relative text-white border-t border-white/5">
-        <div className="text-center text-gray-500">Loading skills...</div>
-      </section>
-    );
-  }
 
   return (
     <section id="skills" className="py-24 bg-transparent relative text-white border-t border-white/5">
@@ -104,26 +67,18 @@ export default function Skills() {
           viewport={{ once: true, margin: "-50px" }}
           className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6"
         >
-          {skills.map((skill) => {
-            const iconConfig = iconMap[skill.name] || { icon: FiCode, color: 'text-purple-400' };
-            const Icon = iconConfig.icon;
-
-            return (
-              <motion.div
-                key={skill._id}
-                variants={itemVariants}
-                className="flex flex-col items-center justify-center p-8 rounded-2xl bg-white/5 border border-white/10 hover:border-purple-500/50 hover:bg-white/10 transition-all duration-300 group hover:shadow-[0_0_30px_rgba(168,85,247,0.15)]"
-              >
-                <Icon className={`w-14 h-14 mb-4 group-hover:scale-110 transition-transform duration-300 ${iconConfig.color}`} />
-                <span className="text-gray-300 font-medium group-hover:text-white transition-colors">
-                  {skill.name}
-                </span>
-                {skill.category && (
-                   <span className="text-[10px] text-gray-500 mt-1 uppercase tracking-widest">{skill.category}</span>
-                )}
-              </motion.div>
-            );
-          })}
+          {skills.map((skill) => (
+            <motion.div
+              key={skill.name}
+              variants={itemVariants}
+              className="flex flex-col items-center justify-center p-8 rounded-2xl bg-white/5 border border-white/10 hover:border-purple-500/50 hover:bg-white/10 transition-all duration-300 group hover:shadow-[0_0_30px_rgba(168,85,247,0.15)]"
+            >
+              <skill.icon className={`w-14 h-14 mb-4 group-hover:scale-110 transition-transform duration-300 ${skill.color}`} />
+              <span className="text-gray-300 font-medium group-hover:text-white transition-colors">
+                {skill.name}
+              </span>
+            </motion.div>
+          ))}
         </motion.div>
       </div>
     </section>
