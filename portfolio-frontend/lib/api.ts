@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://portfolio-backend-z1kp.onrender.com';
 
 // Create axios instance with base URL
 const api = axios.create({
