@@ -1,8 +1,26 @@
 "use client";
 
+import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
+import { aboutAPI } from '@/lib/api';
 
 export default function Hero() {
+  const [name, setName] = useState('Vishal');
+
+  useEffect(() => {
+    const fetchName = async () => {
+      try {
+        const response = await aboutAPI.get();
+        if (response.data.name) {
+          setName(response.data.name);
+        }
+      } catch (error) {
+        console.error('Error fetching name:', error);
+      }
+    };
+    fetchName();
+  }, []);
+
   const handleScroll = (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>, href: string) => {
     e.preventDefault();
     const targetId = href.replace('#', '');
@@ -28,7 +46,7 @@ export default function Hero() {
           transition={{ duration: 0.8, ease: "easeOut" }}
         >
           <h1 className="text-5xl md:text-7xl font-extrabold text-white tracking-tight mb-6">
-            Hi, I'm <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-blue-500">Vishal</span>
+            Hi, I'm <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-blue-500">{name}</span>
           </h1>
         </motion.div>
 
@@ -78,3 +96,4 @@ export default function Hero() {
     </section>
   );
 }
+
