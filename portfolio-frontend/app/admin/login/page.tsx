@@ -22,9 +22,11 @@ export default function AdminLogin() {
 
       if (token) {
         localStorage.setItem('token', token);
-        document.cookie = `token=${token}; path=/; max-age=86400; SameSite=Lax`;
+        const secure = window.location.protocol === 'https:' ? '; Secure' : '';
+        document.cookie = `token=${token}; path=/; max-age=86400; SameSite=Lax${secure}`;
         router.push('/admin/dashboard');
       }
+
     } catch (err: any) {
       setError(err.response?.data?.message || 'Invalid credentials');
     } finally {

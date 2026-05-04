@@ -10,9 +10,11 @@ export default function AdminSidebar() {
 
   const handleLogout = () => {
     localStorage.removeItem('token');
-    document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT';
+    const secure = window.location.protocol === 'https:' ? '; Secure' : '';
+    document.cookie = `token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT; SameSite=Lax${secure}`;
     router.push('/admin/login');
   };
+
 
   const navLinks = [
     { name: 'Dashboard', href: '/admin/dashboard', icon: FiGrid },
